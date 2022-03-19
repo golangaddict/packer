@@ -14,6 +14,7 @@ type FileWatcher struct {
 
 type FileWatcherConfig struct {
 	Patterns []string
+	Includes []string
 	Excludes []string
 }
 
@@ -31,8 +32,20 @@ func NewFileWatcher(config FileWatcherConfig) (*FileWatcher, error) {
 		w.AddFilterHook(watcher.RegexFilterHook(r, true))
 	}
 
-	for _, e := range config.Excludes {
-		if err := w.Ignore(e); err != nil {
+	for _, exc := range config.Excludes {
+		if err := w.Ignore(exc); err != nil {
+			return nil, err
+		}
+	}
+
+	if len(config.Includes) > 0 {
+		for _, inc := range config.Includes {
+			if err := w.AddRecursive(inc); err != nil {
+				return nil, err
+			}
+		}
+	} else {
+		if err := w.AddRecursive("."); err != nil {
 			return nil, err
 		}
 	}
