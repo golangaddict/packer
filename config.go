@@ -16,11 +16,10 @@ type WatcherConfig struct {
 }
 
 type JSConfig struct {
-	Libs        []string `json:"libs"`
-	Deps        []string `json:"deps"`
-	ModulePaths []string `json:"module_paths"`
-	Modules     []string `json:"modules"`
-	Output      string   `json:"output"`
+	Libs    []string `json:"libs"`
+	Deps    []string `json:"deps"`
+	Modules []string `json:"modules"`
+	Output  string   `json:"output"`
 }
 
 func LoadConfig() (c *Config, err error) {
