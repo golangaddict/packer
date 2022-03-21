@@ -1,34 +1,37 @@
 package main
 
 import (
+	"flag"
+	"github.com/golangaddict/packer"
 	"log"
 	"os"
 	"os/signal"
 )
 
+var (
+	appMode string
+)
+
 func main() {
-	c, err := LoadConfig()
+	flag.StringVar(&appMode, "mode", "development", "--mode development")
+	flag.Parse()
+
+	cfg, err := packer.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fwc := FileWatcherConfig{
-		Patterns: c.Watcher.Patterns,
-		Includes: c.Watcher.Includes,
-		Excludes: c.Watcher.Excludes,
-	}
-
-	w, err := NewFileWatcher(fwc)
+	grp, err := packer.NewGroup(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	go func() {
 		closeHandler()
-		w.Close()
+		grp.Close()
 	}()
 
-	if err := w.Start(); err != nil {
+	if err := grp.Start(); err != nil {
 		log.Fatal(err)
 	}
 }

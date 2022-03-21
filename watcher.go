@@ -1,4 +1,4 @@
-package main
+package packer
 
 import (
 	"fmt"
@@ -7,73 +7,80 @@ import (
 	"time"
 )
 
-type FileWatcher struct {
-	w     *watcher.Watcher
-	funcs map[string]func() error
+type Watcher struct {
+	options WatcherOptions
+	w       *watcher.Watcher
+	funcs   map[string]func(path string) error
 }
 
-type FileWatcherConfig struct {
-	Patterns []string
-	Includes []string
-	Excludes []string
+type WatcherOptions struct {
+	Patterns []string `json:"patterns"`
+	Includes []string `json:"includes"`
+	Excludes []string `json:"excludes"`
 }
 
-func NewFileWatcher(config FileWatcherConfig) (*FileWatcher, error) {
+func NewWatcher(options WatcherOptions) *Watcher {
 	w := watcher.New()
 	w.SetMaxEvents(1)
 	w.FilterOps(watcher.Write)
 
-	for _, p := range config.Patterns {
+	return &Watcher{
+		options: options,
+		w:       w,
+		funcs:   make(map[string]func(string) error),
+	}
+}
+
+func (fw *Watcher) Start() error {
+	go fw.watch()
+
+	for _, p := range fw.options.Patterns {
 		r, err := regexp.Compile(p)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		w.AddFilterHook(watcher.RegexFilterHook(r, true))
+		fw.w.AddFilterHook(watcher.RegexFilterHook(r, true))
 	}
 
-	for _, exc := range config.Excludes {
-		if err := w.Ignore(exc); err != nil {
-			return nil, err
+	for _, exc := range fw.options.Excludes {
+		if err := fw.w.Ignore(exc); err != nil {
+			return err
 		}
 	}
 
-	if len(config.Includes) > 0 {
-		for _, inc := range config.Includes {
-			if err := w.AddRecursive(inc); err != nil {
-				return nil, err
+	if len(fw.options.Includes) > 0 {
+		for _, inc := range fw.options.Includes {
+			if err := fw.w.AddRecursive(inc); err != nil {
+				return err
 			}
 		}
 	} else {
-		if err := w.AddRecursive("."); err != nil {
-			return nil, err
+		if err := fw.w.AddRecursive("."); err != nil {
+			return err
 		}
 	}
 
-	for p, f := range w.WatchedFiles() {
+	for p, f := range fw.w.WatchedFiles() {
 		fmt.Printf("%s: %s\n", p, f.Name())
 	}
 
-	return &FileWatcher{
-		w:     w,
-		funcs: make(map[string]func() error),
-	}, nil
-}
-
-func (fw *FileWatcher) Start() error {
-	go fw.watch()
 	return fw.w.Start(time.Millisecond * 100)
 }
 
-func (fw *FileWatcher) AddFunc(name string, f func() error) {
+func (fw *Watcher) AddFunc(name string, f func(path string) error) {
 	fw.funcs[name] = f
 }
 
-func (fw *FileWatcher) Close() {
+func (fw *Watcher) Close() {
 	fw.w.Close()
 }
 
-func (fw *FileWatcher) watch() {
+func (fw *Watcher) Closed() <-chan struct{} {
+	return fw.w.Closed
+}
+
+func (fw *Watcher) watch() {
 	for {
 		select {
 		case e := <-fw.w.Event:

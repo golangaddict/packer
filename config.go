@@ -1,28 +1,18 @@
-package main
+package packer
 
 import (
 	"encoding/json"
 	"os"
 )
 
-type Config struct {
-	Watcher WatcherConfig `json:"watcher"`
+type Config []Options
+
+type Options struct {
+	Watcher WatcherOptions `json:"watcher"`
+	JS      JSOptions      `json:"js"`
 }
 
-type WatcherConfig struct {
-	Patterns []string `json:"patterns"`
-	Includes []string `json:"includes"`
-	Excludes []string `json:"excludes"`
-}
-
-type JSConfig struct {
-	Libs    []string `json:"libs"`
-	Deps    []string `json:"deps"`
-	Modules []string `json:"modules"`
-	Output  string   `json:"output"`
-}
-
-func LoadConfig() (c *Config, err error) {
+func LoadConfig() (c Config, err error) {
 	f, err := os.Open("packer.config.json")
 	if err != nil {
 		return nil, err
