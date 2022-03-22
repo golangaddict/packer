@@ -2,6 +2,7 @@ package packer
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 )
 
@@ -9,15 +10,27 @@ type Config []Options
 
 type Options struct {
 	Watcher WatcherOptions `json:"watcher"`
-	JS      JSOptions      `json:"js"`
+	JS      *JSOptions     `json:"js"`
 }
 
-func LoadConfig() (c Config, err error) {
-	f, err := os.Open("packer.config.json")
+func LoadConfig(path ...string) (c Config, err error) {
+	if len(path) == 0 {
+		path[0] = "packer.config.json"
+	}
+
+	f, err := os.Open(path[0])
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
 
-	return c, json.NewDecoder(f).Decode(&c)
+	if err := json.NewDecoder(f).Decode(&c); err != nil {
+		return nil, err
+	}
+
+	if len(c) == 0 {
+		return nil, errors.New("config: missing options object")
+	}
+
+	return c, nil
 }

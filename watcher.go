@@ -3,6 +3,7 @@ package packer
 import (
 	"fmt"
 	"github.com/radovskyb/watcher"
+	"log"
 	"regexp"
 	"time"
 )
@@ -10,7 +11,7 @@ import (
 type Watcher struct {
 	options WatcherOptions
 	w       *watcher.Watcher
-	funcs   map[string]func(path string) error
+	hooks   map[string]func(path string) error
 }
 
 type WatcherOptions struct {
@@ -27,7 +28,7 @@ func NewWatcher(options WatcherOptions) *Watcher {
 	return &Watcher{
 		options: options,
 		w:       w,
-		funcs:   make(map[string]func(string) error),
+		hooks:   make(map[string]func(string) error),
 	}
 }
 
@@ -68,8 +69,8 @@ func (fw *Watcher) Start() error {
 	return fw.w.Start(time.Millisecond * 100)
 }
 
-func (fw *Watcher) AddFunc(name string, f func(path string) error) {
-	fw.funcs[name] = f
+func (fw *Watcher) AddHook(name string, f func(path string) error) {
+	fw.hooks[name] = f
 }
 
 func (fw *Watcher) Close() {
@@ -85,6 +86,11 @@ func (fw *Watcher) watch() {
 		select {
 		case e := <-fw.w.Event:
 			fmt.Printf("%+v\n", e)
+			for name, f := range fw.hooks {
+				if err := f(e.Path); err != nil {
+					log.Printf("%s: %s\n", name, err)
+				}
+			}
 		case err := <-fw.w.Error:
 			fmt.Printf("filewatcher: %s\n", err)
 		case <-fw.w.Closed:

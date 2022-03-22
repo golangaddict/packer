@@ -1,0 +1,21 @@
+[
+  {
+    "watcher": {
+      "includes": [
+        "testdata\\script.js"
+      ]
+    },
+    "js": {
+      "libs": [
+        "testdata\\js\\lib\\lib.js"
+      ],
+      "deps": [
+        "testdata\\js\\modules\\dep.js"
+      ],
+      "modules": [
+        "testdata\\js\\modules\\module.js"
+      ],
+      "output": "testdata\\build\\test_output.js"
+    }
+  }
+]

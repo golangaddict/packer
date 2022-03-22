@@ -35,10 +35,16 @@ type Packer struct {
 }
 
 func New(options Options) *Packer {
-	return &Packer{
+	p := &Packer{
 		watcher: NewWatcher(options.Watcher),
-		js:      NewJSCompiler(options.JS),
 	}
+
+	if options.JS != nil {
+		p.js = NewJSCompiler(*options.JS)
+		p.watcher.AddHook("js", p.js.Run)
+	}
+
+	return p
 }
 
 func (p *Packer) Start() error {
