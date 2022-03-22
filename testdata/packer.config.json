@@ -15,6 +15,7 @@
       "modules": [
         "testdata\\js\\modules\\module.js"
       ],
+      "wrap_doc_ready": true,
       "output": "testdata\\build\\test_output.js"
     }
   }
