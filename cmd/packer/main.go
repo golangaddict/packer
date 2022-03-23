@@ -8,12 +8,8 @@ import (
 	"os/signal"
 )
 
-var (
-	appMode string
-)
-
 func main() {
-	flag.StringVar(&appMode, "mode", "development", "--mode development")
+	mode := flag.String("mode", "development", "--mode development")
 	flag.Parse()
 
 	cfg, err := packer.LoadConfig()
@@ -21,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	grp, err := packer.NewGroup(cfg)
+	grp, err := packer.NewGroup(*mode, cfg)
 	if err != nil {
 		log.Fatal(err)
 	}

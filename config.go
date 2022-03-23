@@ -11,6 +11,7 @@ type Config []Options
 type Options struct {
 	Watcher WatcherOptions `json:"watcher"`
 	JS      *JSOptions     `json:"js"`
+	SASS    *SassOptions   `json:"sass"`
 }
 
 func LoadConfig(path ...string) (c Config, err error) {

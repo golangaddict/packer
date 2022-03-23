@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 )
 
 type JSCompiler struct {
 	options JSOptions
-	sb      strings.Builder
-	err     error
 	cache   map[string]bool
 }
 
@@ -20,6 +19,7 @@ type JSOptions struct {
 	Deps         []string `json:"deps"`
 	Modules      []string `json:"modules"`
 	WrapDocReady bool     `json:"wrap_doc_ready"`
+	Minify       bool     `json:"minify"`
 	Output       string   `json:"output"`
 }
 
@@ -48,14 +48,22 @@ func (c *JSCompiler) Run(path string) error {
 	}
 
 	if c.options.WrapDocReady {
-		modules = fmt.Sprintf("$(function(){\n%s\n});", modules)
+		modules = fmt.Sprintf("$(function(){\n%s});", modules)
+	}
+
+	if c.options.Minify {
+		minified, err := c.minify(deps + modules)
+		if err != nil {
+			return err
+		}
+		return c.saveOutput(libs + minified)
 	}
 
 	return c.saveOutput(libs + deps + modules)
 }
 
 func (c *JSCompiler) compile(path ...string) (string, error) {
-	var sb errStringBuilder
+	var sb strings.Builder
 	for _, p := range path {
 		files, err := getFilesFromPath(p)
 		if err != nil {
@@ -67,16 +75,45 @@ func (c *JSCompiler) compile(path ...string) (string, error) {
 				continue
 			}
 			c.cache[f] = true
-			sb.writeBytesFromFile(f)
+			b, err := ioutil.ReadFile(f)
+			if err != nil {
+				return "", err
+			}
+			sb.Write(b)
+			if !strings.HasSuffix(sb.String(), "\n") {
+				sb.WriteString("\n")
+			}
 		}
 	}
 
-	return sb.String(), sb.err
+	return sb.String(), nil
+}
+
+func (c *JSCompiler) minify(s string) (string, error) {
+	f, err := os.CreateTemp("", "minify")
+	if err != nil {
+		return "", err
+	}
+	defer os.Remove(f.Name())
+	defer f.Close()
+
+	if _, err := f.WriteString(s); err != nil {
+		return "", err
+	}
+
+	if err := exec.Command("uglifyjs", f.Name(), "-o", f.Name()).Run(); err != nil {
+		return "", err
+	}
+
+	if _, err := f.Seek(0, 0); err != nil {
+		return "", err
+	}
+
+	b, err := ioutil.ReadAll(f)
+	return string(b), err
 }
 
 func (c *JSCompiler) reset() {
-	c.err = nil
-	c.sb.Reset()
 	c.cache = make(map[string]bool)
 }
 

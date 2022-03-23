@@ -6,9 +6,9 @@ import (
 
 type Group []*Packer
 
-func NewGroup(config Config) (g Group, err error) {
+func NewGroup(mode string, config Config) (g Group, err error) {
 	for _, options := range config {
-		g = append(g, New(options))
+		g = append(g, New(mode, options))
 	}
 
 	return g, nil
@@ -32,16 +32,25 @@ func (g Group) Close() {
 type Packer struct {
 	watcher *Watcher
 	js      *JSCompiler
+	sass    *SassCompiler
 }
 
-func New(options Options) *Packer {
+func New(mode string, options Options) *Packer {
 	p := &Packer{
 		watcher: NewWatcher(options.Watcher),
 	}
 
 	if options.JS != nil {
+		if mode == "production" {
+			options.JS.Minify = true
+		}
 		p.js = NewJSCompiler(*options.JS)
 		p.watcher.AddHook("js", p.js.Run)
+	}
+
+	if options.SASS != nil {
+		p.sass = NewSassCompiler(*options.SASS)
+		p.watcher.AddHook("sass", p.sass.Run)
 	}
 
 	return p

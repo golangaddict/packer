@@ -17,6 +17,10 @@
       ],
       "wrap_doc_ready": true,
       "output": "testdata\\build\\test_output.js"
+    },
+    "sass": {
+      "entry": "testdata\\scss\\main.scss",
+      "output": "testdata\\build\\app.css"
     }
   }
 ]
