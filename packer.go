@@ -2,7 +2,6 @@ package packer
 
 import (
 	"golang.org/x/sync/errgroup"
-	"os"
 )
 
 type Group []*Packer
@@ -42,6 +41,8 @@ func New(mode string, options Options) *Packer {
 		watcher: NewWatcher(options.Watcher),
 	}
 
+	p.watcher.AddHook("clean", options.Clean.Run)
+
 	if options.JS != nil {
 		if mode == "production" {
 			options.JS.Minify = true
@@ -59,16 +60,6 @@ func New(mode string, options Options) *Packer {
 		p.css = NewCssCompiler(*options.CSS)
 		p.watcher.AddHook("css", p.css.Run)
 	}
-
-	p.watcher.AddHook("clean", func(path string) error {
-		for _, cleanPath := range options.Clean {
-			if err := os.RemoveAll(cleanPath); err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
 
 	return p
 }

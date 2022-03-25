@@ -13,7 +13,7 @@ type Options struct {
 	JS      *JSOptions     `json:"js"`
 	SASS    *SassOptions   `json:"sass"`
 	CSS     *CssOptions    `json:"css"`
-	Clean   []string       `json:"clean"`
+	Clean   Cleaner        `json:"clean"`
 }
 
 func LoadConfig(path ...string) (c Config, err error) {
