@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -35,26 +34,24 @@ func (c *SassCompiler) Run(path string) error {
 
 func (c *SassCompiler) compile() error {
 	fname := hashFileName(c.options.Output)
-	css, err := c.compileSass(fname)
-	if err != nil {
+	if err := c.compileSass(fname); err != nil {
 		return err
 	}
 
-	log.Println(css)
-	return nil
+	return c.injectLibs(fname)
 }
 
-func (c *SassCompiler) compileSass(outputFileName string) (string, error) {
+func (c *SassCompiler) compileSass(outputFileName string) error {
 	var errBuf bytes.Buffer
 	cmd := exec.Command("sass", c.options.Entry, outputFileName, "--style", "compressed")
 	cmd.Stderr = &errBuf
 	cmd.Stdout = &errBuf
 
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("sass: %s", errBuf.String())
+		return fmt.Errorf("sass: %s", errBuf.String())
 	}
 
-	return readFileContent(outputFileName)
+	return nil
 }
 
 func (c *SassCompiler) injectLibs(outputFileName string) error {
@@ -64,7 +61,6 @@ func (c *SassCompiler) injectLibs(outputFileName string) error {
 	}
 
 	var sb strings.Builder
-	sb.WriteString(css)
 	for _, f := range c.options.Libs {
 		s, err := readFileContent(f)
 		if err != nil {
@@ -72,6 +68,7 @@ func (c *SassCompiler) injectLibs(outputFileName string) error {
 		}
 		sb.WriteString(s)
 	}
+	sb.WriteString(css)
 
 	return ioutil.WriteFile(outputFileName, []byte(sb.String()), 0644)
 }
