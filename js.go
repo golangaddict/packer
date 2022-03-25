@@ -101,6 +101,7 @@ func (c *JSCompiler) minify(s string) (string, error) {
 		return "", err
 	}
 
+	// TODO: stderr handling
 	if err := exec.Command("uglifyjs", f.Name(), "-o", f.Name()).Run(); err != nil {
 		return "", err
 	}

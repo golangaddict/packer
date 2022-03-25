@@ -24,16 +24,10 @@ func (c *SassCompiler) Run(path string) error {
 		return nil
 	}
 
-	//if err := exec.Command("sass", c.options.Entry, c.options.Output).Run(); err != nil {
+	//if err := os.MkdirAll(filepath.Dir(c.options.Output), os.ModePerm); err != nil {
 	//	return err
 	//}
 
-	//b, err := exec.Command("sass", c.options.Entry, c.options.Output).CombinedOutput()
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//log.Printf("sass: %s\n", b)
-
+	// TODO: stderr handling
 	return exec.Command("sass", c.options.Entry, c.options.Output, "--style", "compressed").Run()
 }

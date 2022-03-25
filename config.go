@@ -16,7 +16,7 @@ type Options struct {
 
 func LoadConfig(path ...string) (c Config, err error) {
 	if len(path) == 0 {
-		path[0] = "packer.config.json"
+		path = append(path, "packer.config.json")
 	}
 
 	f, err := os.Open(path[0])

@@ -66,7 +66,7 @@ func (fw *Watcher) Start() error {
 		fmt.Printf("%s: %s\n", p, f.Name())
 	}
 
-	return fw.w.Start(time.Millisecond * 100)
+	return fw.w.Start(time.Millisecond * 500)
 }
 
 func (fw *Watcher) AddHook(name string, f func(path string) error) {
@@ -82,10 +82,18 @@ func (fw *Watcher) Closed() <-chan struct{} {
 }
 
 func (fw *Watcher) watch() {
+	lastWrite := map[string]time.Time{}
 	for {
 		select {
 		case e := <-fw.w.Event:
-			fmt.Printf("%+v\n", e)
+			t := time.Now()
+			lw, ok := lastWrite[e.Path]
+			if ok && lw.Add(time.Millisecond*500).After(t) {
+				log.Printf("%s: cooldown\n", e.Path)
+				break
+			}
+			lastWrite[e.Path] = t
+			log.Printf("%+v\n", e)
 			for name, f := range fw.hooks {
 				if err := f(e.Path); err != nil {
 					log.Printf("%s: %s\n", name, err)
