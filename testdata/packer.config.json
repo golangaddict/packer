@@ -20,7 +20,20 @@
     },
     "sass": {
       "entry": "testdata\\scss\\main.scss",
-      "output": "testdata\\build\\app.css"
-    }
+      "output": "testdata\\build\\app.[hash].css",
+      "libs": [
+        "testdata\\lib\\lib.css"
+      ]
+    },
+    "css": {
+      "files": [
+        "testdata\\lib\\lib.css",
+        "testdata\\build\\app.css"
+      ],
+      "output": "testdata\\build\\app.hash.css"
+    },
+    "clean": [
+      "testdata\\build"
+    ]
   }
 ]

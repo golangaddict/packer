@@ -2,6 +2,7 @@ package packer
 
 import (
 	"golang.org/x/sync/errgroup"
+	"os"
 )
 
 type Group []*Packer
@@ -33,6 +34,7 @@ type Packer struct {
 	watcher *Watcher
 	js      *JSCompiler
 	sass    *SassCompiler
+	css     *CssCompiler
 }
 
 func New(mode string, options Options) *Packer {
@@ -52,6 +54,21 @@ func New(mode string, options Options) *Packer {
 		p.sass = NewSassCompiler(*options.SASS)
 		p.watcher.AddHook("sass", p.sass.Run)
 	}
+
+	if options.CSS != nil {
+		p.css = NewCssCompiler(*options.CSS)
+		p.watcher.AddHook("css", p.css.Run)
+	}
+
+	p.watcher.AddHook("clean", func(path string) error {
+		for _, cleanPath := range options.Clean {
+			if err := os.RemoveAll(cleanPath); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 
 	return p
 }

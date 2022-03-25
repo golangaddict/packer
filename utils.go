@@ -1,9 +1,13 @@
 package packer
 
 import (
+	"fmt"
 	"io/fs"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
 func isDir(path string) (bool, error) {
@@ -38,6 +42,15 @@ func getFilesFromPath(path string) (s []string, err error) {
 
 		return nil
 	})
+}
+
+func readFileContent(f string) (string, error) {
+	b, err := ioutil.ReadFile(f)
+	return string(b), err
+}
+
+func hashFileName(s string) string {
+	return strings.ReplaceAll(s, "[hash]", fmt.Sprint(time.Now().UnixNano()))
 }
 
 func sliceContains(s []string, v string) bool {

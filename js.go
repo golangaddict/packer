@@ -31,6 +31,7 @@ func (c *JSCompiler) Run(path string) error {
 	if filepath.Ext(path) != ".js" {
 		return nil
 	}
+	defer c.reset()
 
 	libs, err := c.compile(c.options.Libs...)
 	if err != nil {
