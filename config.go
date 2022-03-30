@@ -9,11 +9,13 @@ import (
 type Config []Options
 
 type Options struct {
+	Name    string         `json:"name"`
 	Watcher WatcherOptions `json:"watcher"`
 	JS      *JSOptions     `json:"js"`
 	SASS    *SassOptions   `json:"sass"`
 	CSS     *CssOptions    `json:"css"`
 	Clean   Cleaner        `json:"clean"`
+	Copy    Copier         `json:"copy"`
 }
 
 func LoadConfig(path ...string) (c Config, err error) {

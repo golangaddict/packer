@@ -124,5 +124,5 @@ func (c *JSCompiler) saveOutput(s string) error {
 		return err
 	}
 
-	return ioutil.WriteFile(c.options.Output, []byte(s), 0644)
+	return ioutil.WriteFile(hashFileName(c.options.Output), []byte(s), 0644)
 }

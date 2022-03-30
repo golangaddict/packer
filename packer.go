@@ -41,7 +41,9 @@ func New(mode string, options Options) *Packer {
 		watcher: NewWatcher(options.Watcher),
 	}
 
-	p.watcher.AddHook("clean", options.Clean.Run)
+	if len(options.Clean) > 0 {
+		p.watcher.AddHook("clean", options.Clean.Run)
+	}
 
 	if options.JS != nil {
 		if mode == "production" {
@@ -59,6 +61,10 @@ func New(mode string, options Options) *Packer {
 	if options.CSS != nil {
 		p.css = NewCssCompiler(*options.CSS)
 		p.watcher.AddHook("css", p.css.Run)
+	}
+
+	if len(options.Copy) > 0 {
+		p.watcher.AddHook("copy", options.Copy.Run)
 	}
 
 	return p

@@ -25,6 +25,12 @@
         "testdata\\lib\\lib.css"
       ]
     },
+    "copy": [
+      {
+        "from": "testdata\\js\\modules\\module.js",
+        "to": "testdata\\build\\copy.js"
+      }
+    ],
     "clean": [
       "testdata\\build"
     ]
